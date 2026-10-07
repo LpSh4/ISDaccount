@@ -33,7 +33,7 @@ defineOptions({
     >
         <div class="grid gap-6">
             <div class="grid gap-2">
-                <Label for="name">Name</Label>
+                <Label for="name">First Name</Label>
                 <Input
                     id="name"
                     type="text"
@@ -42,7 +42,35 @@ defineOptions({
                     :tabindex="1"
                     autocomplete="name"
                     name="name"
-                    placeholder="Full name"
+                    placeholder="First Name"
+                />
+                <InputError :message="errors.name" />
+            </div>
+
+            <div class="grid gap-2">
+                <Label for="surname">Surname</Label>
+                <Input
+                    id="surname"
+                    type="text"
+                    v-focus
+                    :tabindex="1"
+                    autocomplete="surname"
+                    name="surname"
+                    placeholder="Surname (optional)"
+                />
+                <InputError :message="errors.surname" />
+            </div>
+
+            <div class="grid gap-2">
+                <Label for="lastname">Last Name</Label>
+                <Input
+                    id="lastname"
+                    type="text"
+                    v-focus
+                    :tabindex="1"
+                    autocomplete="lastname"
+                    name="lastname"
+                    placeholder="Last Name (optional)"
                 />
                 <InputError :message="errors.name" />
             </div>
@@ -59,6 +87,20 @@ defineOptions({
                     placeholder="email@example.com"
                 />
                 <InputError :message="errors.email" />
+            </div>
+
+            <div class="grid gap-2">
+                <Label for="date_of_birth">Date of Birth</Label>
+                <Input
+                    id="date_of_birth"
+                    type="date"
+                    required
+                    :tabindex="2"
+                    autocomplete="date_of_birth"
+                    name="date_of_birth"
+                    placeholder="XX.XX.XXXX"
+                />
+                <InputError :message="errors.date" />
             </div>
 
             <div class="grid gap-2">

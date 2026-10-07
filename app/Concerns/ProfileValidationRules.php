@@ -17,6 +17,9 @@ trait ProfileValidationRules
     {
         return [
             'name' => $this->nameRules(),
+            'surname' => $this->surnameRules(),
+            'lastname' => $this->lastnameRules(),
+            'date_of_birth' => $this->date_of_birthRules(),
             'email' => $this->emailRules($userId),
         ];
     }
@@ -29,6 +32,31 @@ trait ProfileValidationRules
     protected function nameRules(): array
     {
         return ['required', 'string', 'max:255'];
+    }
+
+    /**
+     * Get the validation rules used to validate user names.
+     *
+     * @return array<int, ValidationRule|array<mixed>|string>
+     */
+    protected function surnameRules(): array
+    {
+        return ['nullable', 'string', 'max:255'];
+    }
+
+    /**
+     * Get the validation rules used to validate user names.
+     *
+     * @return array<int, ValidationRule|array<mixed>|string>
+     */
+    protected function lastnameRules(): array
+    {
+        return ['nullable', 'string', 'max:255'];
+    }
+
+    protected function date_of_birthRules(): array
+    {
+        return ['nullable', 'date', 'before:today'];
     }
 
     /**
