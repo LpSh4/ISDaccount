@@ -17,7 +17,7 @@
         "laravel/reverb": "^1.0",
         "laravel/tinker": "^3.0",
         "laravel/wayfinder": "^0.1.14",
-        "nutgram/laravel": "^1.7",
+        "nutgram/laravel": "*",
         "nutgram/nutgram": "^4.50"
     },
     "require-dev": {

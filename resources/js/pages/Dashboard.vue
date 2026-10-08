@@ -14,11 +14,6 @@ defineOptions({
     },
 });
 
-const tgprops = defineProps<{
-    noFeedingDays?: number;
-    noIncidentsDays?: number;
-}>();
-
 const page = usePage();
 const user = computed(() => page.props.auth.user as any);
 
@@ -52,6 +47,8 @@ const props = defineProps<{
             created_at: string;
         };
     }>;
+    noFeedingDays?: number;
+    noIncidentsDays?: number;
 }>();
 const startDrag = (e: MouseEvent) => {
     isDragging.value = true;
@@ -138,10 +135,44 @@ onMounted(() => {
 
     <div class="flex h-[calc(100vh-8rem)] flex-1 flex-col gap-4 overflow-hidden rounded-xl p-4">
 
+        <!-- UPDATED HEADER: Counters now sit next to the title -->
         <div class="flex items-center justify-between pb-2">
             <h1 class="text-3xl font-bold tracking-tight">Hello there, {{ user.name }}!</h1>
+
+            <div class="flex items-center gap-4">
+                <!-- Feeding Counter -->
+                <div class="flex items-center gap-4 rounded-xl border border-border bg-card px-4 py-2 shadow-sm">
+                    <div class="flex flex-col">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Days without feeding</span>
+                        <span class="text-2xl font-extrabold text-primary leading-none mt-1">{{ props.noFeedingDays ?? 0 }}</span>
+                    </div>
+                    <button
+                        type="button"
+                        @click="resetCounter('no_feeding')"
+                        class="rounded bg-destructive/10 px-3 py-1.5 text-xs font-semibold text-destructive transition-colors hover:bg-destructive hover:text-destructive-foreground active:scale-95"
+                    >
+                        Reset
+                    </button>
+                </div>
+
+                <!-- Incidents Counter -->
+                <div class="flex items-center gap-4 rounded-xl border border-border bg-card px-4 py-2 shadow-sm">
+                    <div class="flex flex-col">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Days without incidents</span>
+                        <span class="text-2xl font-extrabold text-primary leading-none mt-1">{{ props.noIncidentsDays ?? 0 }}</span>
+                    </div>
+                    <button
+                        type="button"
+                        @click="resetCounter('no_incidents')"
+                        class="rounded bg-destructive/10 px-3 py-1.5 text-xs font-semibold text-destructive transition-colors hover:bg-destructive hover:text-destructive-foreground active:scale-95"
+                    >
+                        Reset
+                    </button>
+                </div>
+            </div>
         </div>
 
+        <!-- THE CANVAS: Cleaned up -->
         <div
             class="relative flex-1 overflow-hidden rounded-xl border border-sidebar-border/70 bg-sidebar dark:border-sidebar-border"
             :class="isDragging ? 'cursor-grabbing' : 'cursor-grab'"
@@ -163,7 +194,7 @@ onMounted(() => {
                     marginTop: '-2000px'
                 }"
             >
-                <div class="absolute inset-0 bg-[linear-gradient(to_right,#8080801a_1px,transparent_1px),linear-gradient(to_bottom,#8080801a_1px,transparent_1px)] bg-[size:40px_40px]"></div>
+                <div class="absolute inset-0 bg-[linear-gradient(to_right,#8080801a_1px,transparent_1px),linear-gradient(to_bottom,#8080801a_1px,transparent_1px)] bg-size-[40px_40px]"></div>
 
                 <svg class="absolute inset-0 h-full w-full pointer-events-none">
                     <line
@@ -175,6 +206,7 @@ onMounted(() => {
                         class="text-border"
                     />
                 </svg>
+
                 <div
                     v-for="(node, index) in canvasNodes"
                     :key="node.id"
@@ -182,7 +214,6 @@ onMounted(() => {
                     :style="{ top: node.y + 'px', left: node.x + 'px' }"
                     :class="index === 0 ? 'border-primary border-2' : 'border-border'"
                 >
-                    <!-- Hover Date Tooltip -->
                     <div v-if="node.pivot" class="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-foreground px-2 py-1 text-xs text-background opacity-0 transition-opacity group-hover:opacity-100">
                         Acquired: {{ new Date(node.pivot.created_at).toLocaleDateString() }}
                     </div>
@@ -191,61 +222,21 @@ onMounted(() => {
                         <img :src="node.image_url" class="h-full w-full object-cover" alt="Achievement Icon" />
                     </div>
 
-                    <!-- Text Content -->
                     <div class="flex-1">
                         <h2 class="font-bold leading-tight">{{ node.title }}</h2>
                         <p class="text-sm text-muted-foreground mt-0.5">{{ node.subtitle }}</p>
                     </div>
                 </div>
 
-                <div class="absolute top-[1950px] left-[2250px] w-64 rounded-xl border border-border bg-card p-4 text-card-foreground shadow-md">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Stats</span>
-                        <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
-                    </div>
-                    <h2 class="font-bold mt-1">Days without feeding</h2>
-                    <div class="my-3 text-4xl font-extrabold text-primary">
-                        {{ tgprops.noFeedingDays ?? 0 }}
-                    </div>
-                    <button
-                        type="button"
-                        @click="resetCounter('no_feeding')"
-                        class="w-full rounded-lg bg-destructive px-3 py-1.5 text-xs font-medium text-destructive-foreground transition-colors hover:bg-destructive/90 active:scale-95"
-                    >
-                        Reset Counter
-                    </button>
-                </div>
-
-                <div class="absolute top-[2150px] left-[2250px] w-64 rounded-xl border border-border bg-card p-4 text-card-foreground shadow-md">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Stats</span>
-                        <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
-                    </div>
-                    <h2 class="font-bold mt-1">Days without incidents</h2>
-                    <div class="my-3 text-4xl font-extrabold text-primary">
-                        {{ tgprops.noIncidentsDays ?? 0 }}
-                    </div>
-                    <button
-                        type="button"
-                        @click="resetCounter('no_incidents')"
-                        class="w-full rounded-lg bg-destructive px-3 py-1.5 text-xs font-medium text-destructive-foreground transition-colors hover:bg-destructive/90 active:scale-95"
-                    >
-                        Reset Counter
-                    </button>
-                </div>
-
-                <div class="absolute top-[1990px] left-[2156px] h-0.5 w-[94px] bg-border"></div>
-                <div class="absolute top-[1990px] left-[2202px] h-[200px] w-0.5 bg-border"></div>
-                <div class="absolute top-[2190px] left-[2202px] h-0.5 w-[48px] bg-border"></div>
-
+                <!-- NOTE: The old hardcoded stats blocks and connection lines were safely deleted from here! -->
             </div>
         </div>
 
-        <!-- Footer with fillers -->
+        <!-- Footer -->
         <footer class="mt-auto flex shrink-0 items-center justify-between rounded-xl border border-sidebar-border/70 p-4 text-sm text-muted-foreground dark:border-sidebar-border">
             <div>&copy; 1985 ISD client</div>
             <div class="flex gap-4">
-                <a href="https://t.me/Apol_ISD_bot" target="_blank" class="hover:text-foreground transition-colors">Telegram Bot</a>
+                <a href="https://t.me/Apol88_bot" target="_blank" class="hover:text-foreground transition-colors">Telegram Bot</a>
                 <a href="#" class="hover:text-foreground transition-colors">GitHub</a>
                 <a href="#" class="hover:text-foreground transition-colors">Documentation</a>
                 <a href="#" class="hover:text-foreground transition-colors">Support</a>
