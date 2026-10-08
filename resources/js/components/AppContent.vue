@@ -14,7 +14,7 @@ const props = withDefaults(defineProps<Props>(), {
 const className = computed(() => props.class);
 </script>
 
-<template>
+<template>z
     <SidebarInset v-if="props.variant === 'sidebar'" :class="className">
         <slot />
     </SidebarInset>

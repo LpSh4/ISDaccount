@@ -2,6 +2,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Events\AchievementCreated;
 use App\Models\Achievement;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -26,6 +27,8 @@ class DashboardController extends Controller
         // Creating achievements, for now this page only does that :P
         $achievement = Achievement::create($validated);
         $user->achievements()->attach($achievement->id);
+        // Now it also sends a reverb event
+        event(new AchievementCreated($user->id, $achievement->toArray()));
         return back();
     }
 }
