@@ -16,7 +16,9 @@
         "laravel/framework": "^13.17",
         "laravel/reverb": "^1.0",
         "laravel/tinker": "^3.0",
-        "laravel/wayfinder": "^0.1.14"
+        "laravel/wayfinder": "^0.1.14",
+        "nutgram/laravel": "^1.7",
+        "nutgram/nutgram": "^4.50"
     },
     "require-dev": {
         "fakerphp/faker": "^1.24",
@@ -55,7 +57,8 @@
         ],
         "dev": [
             "Composer\\Config::disableProcessTimeout",
-            "@php artisan dev"
+            "@php artisan dev",
+            "npx concurrentally -c \"#9333EA,#C084FC\" \"php artisan serve\" \"npm run dev\" --names=server,vite"
         ],
         "lint": [
             "pint --parallel"
