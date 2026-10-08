@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Link } from '@inertiajs/vue3';
-import { BookOpen, FolderGit2, LayoutGrid } from '@lucide/vue';
+import {Link, usePage} from '@inertiajs/vue3';
+import {BookOpen, FolderGit2, LayoutGrid, ShieldAlert} from '@lucide/vue';
 import AppLogo from '@/components/AppLogo.vue';
 import NavFooter from '@/components/NavFooter.vue';
 import NavMain from '@/components/NavMain.vue';
@@ -14,16 +14,32 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { dashboard } from '@/routes';
+import {admindashboard, dashboard} from '@/routes';
 import type { NavItem } from '@/types';
+import {computed} from "vue";
 
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Dashboard',
-        href: dashboard(),
-        icon: LayoutGrid,
-    },
-];
+const page = usePage();
+const user = computed(() => page.props.auth?.user as any);
+
+const mainNavItems = computed<NavItem[]>(() => {
+    const items: NavItem[] = [
+        {
+            title: 'Achievements',
+            href: dashboard(),
+            icon: LayoutGrid,
+        },
+    ];
+    // Prevent admin dashboard from rendering if the user isnt an admin
+    if (user.value?.role === 'admin') {
+        items.push({
+            title: 'Admin Dashboard',
+            href: admindashboard(),
+            icon: ShieldAlert,
+        });
+    }
+
+    return items;
+});
 
 // const footerNavItems: NavItem[] = [
 //     {
@@ -52,7 +68,6 @@ const mainNavItems: NavItem[] = [
                 </SidebarMenuItem>
             </SidebarMenu>
         </SidebarHeader>
-
         <SidebarContent>
             <NavMain :items="mainNavItems" />
         </SidebarContent>

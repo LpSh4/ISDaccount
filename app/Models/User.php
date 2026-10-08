@@ -27,7 +27,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['name', 'surname', 'lastname', 'date_of_birth',  'email', 'password'])]
+#[Fillable(['name', 'surname', 'lastname', 'date_of_birth',  'email', 'password', 'role'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable implements PasskeyUser
 {
@@ -46,5 +46,14 @@ class User extends Authenticatable implements PasskeyUser
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
         ];
+    }
+    //Render achievements (idk, lets just let admin get achievements as well)))))
+    public function achievements()
+    {
+        return $this->belongsToMany(Achievement::class)->withTimestamps();
+    }
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
     }
 }

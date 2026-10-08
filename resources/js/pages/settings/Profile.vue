@@ -62,21 +62,22 @@ const user = computed(() => page.props.auth.user);
                     id="surname"
                     class="mt-1 block w-full"
                     name="surname"
-                    :default-value="(user.surname == 0 || user.surname === '0') ? '' : (user.surname ?? '')"
+                    :default-value="user.surname || undefined"
                     required
                     autocomplete="middle-name"
                     placeholder="Middle name"
                 />
                 <InputError class="mt-2" :message="errors.last_name" />
             </div>
-            <!-- == AND === OPERANDS ARE TEMPORARY FIXES!!!!!!!!!!!! DONT TOUCH AND DONT BLAME!!!!!!!!!!!!!!1-->
+            <!-- == AND === OPERANDS ARE TEMPORARY FIXES!!!!!!!!!!!! DONT TOUCH AND DONT BLAME!!!!!!!!!!!!!!1 -->
+            <!-- :default-value="(user.surname == 0 || user.surname === '0') ? '' : (user.surname ?? '')" -->
             <div class="grid gap-2">
                 <Label for="lastname">Last Name</Label>
                 <Input
                     id="lastname"
                     class="mt-1 block w-full"
                     name="lastname"
-                    :default-value="(user.lastname == 0 || user.lastname === '0') ? '' : (user.lastname ?? '')"
+                    :default-value="user.lastname || undefined"
                     autocomplete="family-name"
                     placeholder="Last name"
                 />

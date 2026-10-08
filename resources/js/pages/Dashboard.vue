@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, usePage } from '@inertiajs/vue3';
-import { computed, ref } from 'vue';
+import {computed, onMounted, ref} from 'vue';
 import { dashboard } from '@/routes';
 
 defineOptions({
@@ -15,7 +15,7 @@ defineOptions({
 });
 
 const page = usePage();
-const user = computed(() => page.props.auth.user);
+const user = computed(() => page.props.auth.user as any);
 
 //States for draggable achievment menu
 const scale = ref(1);
@@ -31,6 +31,17 @@ const handleWheel = (e: WheelEvent) => {
     scale.value = Math.max(0.5, Math.min(newScale, 2.5));
 };
 //read
+const props = defineProps<{
+    achievements: Array<{
+        id: number;
+        title: string;
+        subtitle: string | null;
+        image_url: string | null;
+        pivot?: {
+            created_at: string;
+        };
+    }>;
+}>();
 const startDrag = (e: MouseEvent) => {
     isDragging.value = true;
     startX.value = e.clientX - panX.value;
@@ -46,6 +57,69 @@ const doDrag = (e: MouseEvent) => {
 const stopDrag = () => {
     isDragging.value = false;
 };
+
+const canvasNodes = ref<any[]>([]);
+const connections = ref<any[]>([]);
+
+onMounted(() => {
+    const nodes: any[] = [];
+    const lines: any[] = [];
+    const occupied = new Set<string>();
+
+    const rootX = 2000;
+    const rootY = 2000;
+    const spacingX = 350;
+    const spacingY = 250;
+
+    const directions = [
+        { dx: 0, dy: -spacingY },
+        { dx: spacingX, dy: 0 },
+        { dx: 0, dy: spacingY },
+        { dx: -spacingX, dy: 0 }
+    ];
+
+    if (props.achievements && props.achievements.length > 0) {
+        const rootAch = props.achievements[0];
+        nodes.push({ ...rootAch, x: rootX, y: rootY });
+        occupied.add(`${rootX},${rootY}`);
+        const remaining = props.achievements.slice(1);
+
+        remaining.forEach((ach) => {
+            let placed = false;
+            const shuffledNodes = [...nodes].sort(() => 0.5 - Math.random());
+
+            for (const parent of shuffledNodes) {
+                if (placed) break;
+
+                const shufDirs = [...directions].sort(() => 0.5 - Math.random());
+
+                for (const dir of shufDirs) {
+                    const newX = parent.x + dir.dx;
+                    const newY = parent.y + dir.dy;
+                    const coordKey = `${newX},${newY}`;
+
+                    if (!occupied.has(coordKey)) {
+                        nodes.push({ ...ach, x: newX, y: newY });
+                        occupied.add(coordKey);
+
+                        lines.push({
+                            x1: parent.x + 128,
+                            y1: parent.y + 64,
+                            x2: newX + 128,
+                            y2: newY + 64
+                        });
+
+                        placed = true;
+                        break;
+                    }
+                }
+            }
+        });
+    }
+
+    canvasNodes.value = nodes;
+    connections.value = lines;
+});
 </script>
 
 <template>
@@ -57,7 +131,6 @@ const stopDrag = () => {
             <h1 class="text-3xl font-bold tracking-tight">Hello there, {{ user.name }}!</h1>
         </div>
 
-        <!-- I love mihecraf MursuStare -->
         <div
             class="relative flex-1 overflow-hidden rounded-xl border border-sidebar-border/70 bg-sidebar dark:border-sidebar-border"
             :class="isDragging ? 'cursor-grabbing' : 'cursor-grab'"
@@ -67,7 +140,6 @@ const stopDrag = () => {
             @mouseup="stopDrag"
             @mouseleave="stopDrag"
         >
-            <!-- The Moving Surface (4000 by 4000, scalable later ig)-->
             <div
                 class="absolute origin-center transition-transform duration-75 ease-out"
                 :style="{
@@ -82,22 +154,38 @@ const stopDrag = () => {
             >
                 <div class="absolute inset-0 bg-[linear-gradient(to_right,#8080801a_1px,transparent_1px),linear-gradient(to_bottom,#8080801a_1px,transparent_1px)] bg-[size:40px_40px]"></div>
 
-                <!--
-                    CANVAS CONTENTS GO HERE
-                    Use absolute positioning (top/left) to place achievements around the board!!!!!!!!!!!!!!!!!!!!!!
-                -->
+                <svg class="absolute inset-0 h-full w-full pointer-events-none">
+                    <line
+                        v-for="(line, index) in connections"
+                        :key="'line-'+index"
+                        :x1="line.x1" :y1="line.y1" :x2="line.x2" :y2="line.y2"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        class="text-border"
+                    />
+                </svg>
+                <div
+                    v-for="(node, index) in canvasNodes"
+                    :key="node.id"
+                    class="group absolute w-64 rounded-xl border bg-card p-3 text-card-foreground shadow-xl flex items-center gap-4 transition-all hover:scale-105 z-10"
+                    :style="{ top: node.y + 'px', left: node.x + 'px' }"
+                    :class="index === 0 ? 'border-primary border-2' : 'border-border'"
+                >
+                    <!-- Hover Date Tooltip -->
+                    <div v-if="node.pivot" class="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap rounded bg-foreground px-2 py-1 text-xs text-background opacity-0 transition-opacity group-hover:opacity-100">
+                        Acquired: {{ new Date(node.pivot.created_at).toLocaleDateString() }}
+                    </div>
 
-                <div class="absolute top-[1950px] left-[1900px] w-64 rounded-xl border-2 border-primary bg-card p-4 text-card-foreground shadow-xl">
-                    <h2 class="font-bold">Start Menu</h2>
-                    <p class="text-sm text-muted-foreground mt-1">Drag anywhere to explore</p>
+                    <div v-if="node.image_url" class="h-16 w-16 shrink-0 rounded-md overflow-hidden bg-muted">
+                        <img :src="node.image_url" class="h-full w-full object-cover" alt="Achievement Icon" />
+                    </div>
+
+                    <!-- Text Content -->
+                    <div class="flex-1">
+                        <h2 class="font-bold leading-tight">{{ node.title }}</h2>
+                        <p class="text-sm text-muted-foreground mt-0.5">{{ node.subtitle }}</p>
+                    </div>
                 </div>
-
-                <div class="absolute top-[1750px] left-[1900px] w-64 rounded-xl border border-border bg-card p-4 text-card-foreground shadow-md">
-                    <h2 class="font-bold">First Achievement</h2>
-                    <p class="text-sm text-muted-foreground mt-1">Found a secret node.</p>
-                </div>
-
-                <div class="absolute top-[1830px] left-[2025px] h-[120px] w-1 bg-border"></div>
 
             </div>
         </div>
